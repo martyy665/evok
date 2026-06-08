@@ -82,6 +82,27 @@ evok/event/di/1_01 {"dev": "di", "circuit": "1_01", "value": 1, ...}
 evok/event/ro/2_04 {"dev": "ro", "circuit": "2_04", "value": 0, ...}
 ```
 
+### Filtering by device type
+
+Use MQTT topic wildcards to subscribe only to the device types you care about.
+This is more efficient than `evok/event/#` because the broker filters before
+delivery — no unwanted messages ever reach the client.
+
+```bash title="Subscribe to digital I/O and relays only (suppress AI noise)"
+mosquitto_sub -h localhost -u evok -P secret \
+  -t 'evok/event/di/#' \
+  -t 'evok/event/do/#' \
+  -t 'evok/event/ro/#' -v
+```
+
+```bash title="Watch a single circuit across all device types"
+mosquitto_sub -h localhost -u evok -P secret \
+  -t 'evok/event/+/1_01' -v
+```
+
+Common device type names for topic filtering: `di`, `do`, `ro`, `ai`, `ao`,
+`sensor`, `register`. See the [circuit reference](../circuit.md) for the full list.
+
 ## Configuration
 
 Add an `mqtt` section inside `apis` in `/etc/evok/config.yaml`:
