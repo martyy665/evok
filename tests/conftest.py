@@ -30,8 +30,8 @@ class FakeMqttInner:
         self.subscribed = []
         self._messages = messages or []
 
-    async def publish(self, topic, payload, retain=False):
-        self.published.append({'topic': topic, 'payload': payload, 'retain': retain})
+    async def publish(self, topic, payload, retain=False, qos=0):
+        self.published.append({'topic': topic, 'payload': payload, 'retain': retain, 'qos': qos})
 
     async def subscribe(self, topic):
         self.subscribed.append(topic)
@@ -56,8 +56,8 @@ class FakeMqttClient:
     async def __aexit__(self, *args):
         pass
 
-    async def publish(self, topic, payload, retain=False):
-        await self.inner.publish(topic, payload, retain=retain)
+    async def publish(self, topic, payload, retain=False, qos=0):
+        await self.inner.publish(topic, payload, retain=retain, qos=qos)
 
 
 # ── device fixtures ───────────────────────────────────────────────────────────

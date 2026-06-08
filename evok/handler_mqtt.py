@@ -72,7 +72,8 @@ class MqttHandler:
         # topic format: <client-id>/cmd/DEVICE/CIRCUIT
         #               <client-id>/cmd/ALL
         topic_row = str(topic)
-        parts = topic.split('/')[2:]
+        prefix_len = len(self.client_id.split('/')) + 1  # client_id segments + KEY_IN ('cmd')
+        parts = topic_row.split('/')[prefix_len:]
         if len(parts) == 1:
             if parts[0].upper() == 'ALL':
                 result = []

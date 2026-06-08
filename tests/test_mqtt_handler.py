@@ -138,6 +138,35 @@ async def test_on_message_all_returns_all_devices():
     assert {'dev': 'di', 'circuit': '1_01', 'value': 0} in payload
 
 
+async def test_on_message_slash_client_id_parses_command():
+    """Client IDs containing slashes (e.g. vesolar/io/site/unit) must not break
+    command topic parsing — parts after KEY_IN must still resolve to devtype/circuit."""
+    slash_conf = {
+        'address': 'localhost',
+        'port': 1883,
+        'client-id': 'vesolar/io/site1/unit2',
+        'keepalive': 60,
+        'qos': 0,
+    }
+    from evok.handler_mqtt import MqttHandler
+    from tornado.ioloop import IOLoop
+    inner = FakeMqttInner()
+    handler = MqttHandler(conf_data=slash_conf, loop=IOLoop.current())
+    handler._MqttHandler__client._MqttClient__client = FakeMqttClient(inner)
+
+    fake_dev = MagicMock()
+    fake_dev.set = AsyncMock(return_value={'dev': 'di', 'circuit': '1_01', 'value': 1})
+
+    with patch('evok.handler_mqtt.Devices') as mock_devs, \
+         patch('evok.handler_mqtt.schemas', {'di': ({}, {})}), \
+         patch('evok.handler_mqtt.jsonschema'):
+        mock_devs.by_name.return_value = fake_dev
+        await handler.on_message('vesolar/io/site1/unit2/cmd/di/1_01', {'value': 1})
+
+    mock_devs.by_name.assert_called_once_with('di', '1_01')
+    fake_dev.set.assert_awaited_once_with(value=1)
+
+
 async def test_on_message_all_topic_case_insensitive():
     handler, inner = make_handler()
     handler._MqttHandler__client.is_connected = True

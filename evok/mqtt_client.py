@@ -85,7 +85,7 @@ class MqttClient:
         """
         msg = json.dumps(data)
         if self.is_connected:
-            await self.__client.publish(topic, msg, retain=False)
+            await self.__client.publish(topic, msg, retain=False, qos=self.conf.qos)
         else:
             self.for_send.append({'topic': topic, 'data': data})
 

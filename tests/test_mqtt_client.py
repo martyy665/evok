@@ -23,7 +23,7 @@ async def test_send_to_publishes_when_connected(conf):
 
     await client.send_to('t/out', {'value': 1})
 
-    assert inner.published == [{'topic': 't/out', 'payload': json.dumps({'value': 1}), 'retain': False}]
+    assert inner.published == [{'topic': 't/out', 'payload': json.dumps({'value': 1}), 'retain': False, 'qos': 0}]
 
 
 async def test_send_to_queues_when_disconnected(conf):
@@ -112,6 +112,19 @@ async def test_run_subscribes_to_configured_topic(conf):
         await task
 
     assert 'evok/cmd/#' in inner.subscribed
+
+
+async def test_send_to_passes_configured_qos_to_publish():
+    """Configured QoS must be forwarded to aiomqtt publish, not silently dropped."""
+    inner = FakeMqttInner()
+    conf = ConfigurationStructure(hostname='localhost', port=1883, qos=1)
+    client = MqttClient(conf=conf, callback=AsyncMock(), topic='t/#', client_id='test')
+    client.is_connected = True
+    client._MqttClient__client = FakeMqttClient(inner)
+
+    await client.send_to('t/out', {'value': 1})
+
+    assert inner.published[0]['qos'] == 1, "QoS from config must reach the publish call"
 
 
 async def test_run_delivers_message_to_callback(conf):
