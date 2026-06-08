@@ -45,8 +45,8 @@ Complete API documentation (REST and JSON API) including syntax of all other API
 | Area | Change |
 |---|---|
 | MQTT API | Full bidirectional MQTT: device state changes published as events, external commands accepted via subscribed topic, `ALL` query/response for bulk device state. See [docs/apis/mqtt.md](docs/apis/mqtt.md). |
-| MQTT events — `register` | Custom Modbus holding registers now emit MQTT events when their value changes (previously silent). |
-| Handler refactoring | `handler_websocket.py`, `handler_webhook.py`, and `handler_rpc.py` extracted from `evok.py`; associated bug fixes in WebSocket closure capture and MQTT credential handling. |
+| `register` device type — events & write | Custom Modbus holding registers now emit change events on both MQTT and WebSocket (previously silent). Values can be written via WebSocket `cmd=set` or REST `POST /json/register/<circuit>` and are immediately readable. |
+| Handler refactoring | `handler_websocket.py`, `handler_webhook.py`, and `handler_rpc.py` extracted from `evok.py`; bug fixes in WebSocket closure capture, MQTT credential passing, and `cmd=all` device enumeration (was missing `register`, `data_point`, and `do` in filtered mode). |
 | Test suite | pytest infrastructure and 5 test modules covering MQTT client, MQTT handler, WebSocket handler, and devices; live E2E test script in `examples/test_mqtt.py`. |
 | Dependencies | Added `aiomqtt>=2.0` for MQTT support. |
 
