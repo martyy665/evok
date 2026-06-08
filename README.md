@@ -9,8 +9,9 @@ It provides multiple ways to easily access the I/Os of the devices, including:
 - Bulk request JSON API
 - WebSocket API
 - JSON-RPC API
+- MQTT API
 
-Besides that, Evok also supports sending notifications via webhook.
+Besides that, Evok also supports outbound push notifications via webhook.
 
 [evok-web] is a simple demo web application using Evok demonstrating its usage and allowing easy control of the devices configured in Evok.
 
@@ -38,6 +39,16 @@ Complete API documentation (REST and JSON API) including syntax of all other API
 - Aliases definition file structure has been changed. Evok automatically updates the aliases definition file if a version from Evok v2 is found.
 - Modbus RTU durability has been improved. Loss of communication with one device will not affect the functionality of the entire bus.
 - Added support to communicate with more Modbus TCP servers.
+
+## Changes from upstream ([UniPiTechnology/evok](https://github.com/UniPiTechnology/evok))
+
+| Area | Change |
+|---|---|
+| MQTT API | Full bidirectional MQTT: device state changes published as events, external commands accepted via subscribed topic, `ALL` query/response for bulk device state. See [docs/apis/mqtt.md](docs/apis/mqtt.md). |
+| `register` device type — events & write | Custom Modbus holding registers now emit change events on both MQTT and WebSocket (previously silent). Values can be written via WebSocket `cmd=set` or REST `POST /json/register/<circuit>` and are immediately readable. |
+| Handler refactoring | `handler_websocket.py`, `handler_webhook.py`, and `handler_rpc.py` extracted from `evok.py`; bug fixes in WebSocket closure capture, MQTT credential passing, and `cmd=all` device enumeration (was missing `register`, `data_point`, and `do` in filtered mode). |
+| Test suite | pytest infrastructure and 5 test modules covering MQTT client, MQTT handler, WebSocket handler, and devices; live E2E test script in `examples/test_mqtt.py`. |
+| Dependencies | Added `aiomqtt>=2.0` for MQTT support. |
 
 ## Developer Note
 

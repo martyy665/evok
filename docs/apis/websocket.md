@@ -117,3 +117,92 @@ WebSocket connection closed
 
 !!! tip
     You can learn more about the circuit parameter [here](../circuit.md)
+
+## Registers over WebSocket
+
+Custom Modbus holding registers (device type `register`) are fully bidirectional over WebSocket: you can write a value and receive change events, exactly like digital or analog I/O.
+
+### Writing a register value
+
+Send a `set` command with `dev` set to `register`:
+
+```python title="Python — write register value and receive confirmation event"
+import websocket, json
+
+
+def on_message(ws, message):
+    print(f"Confirmed: {message}")
+    ws.close()
+
+
+def on_open(ws):
+    msg = {"cmd": "set", "dev": "register", "circuit": "internal_40000", "value": 99}
+    ws.send(json.dumps(msg))
+    print("Sent: set register internal_40000 = 99")
+
+
+if __name__ == "__main__":
+    ws = websocket.WebSocketApp(
+        'ws://127.0.0.1:8080/ws',
+        on_message=on_message,
+        on_open=on_open,
+    )
+    ws.run_forever()
+```
+
+```text title="Output"
+Sent: set register internal_40000 = 99
+```
+
+The write is also immediately visible via REST:
+
+```bash
+curl http://127.0.0.1:8080/json/register/internal_40000
+```
+
+```json
+{"dev": "register", "circuit": "internal_40000", "value": 99}
+```
+
+### Receiving register change events
+
+Register values emit a WebSocket event whenever they change (whether written via WebSocket, REST, or detected by the scan loop).
+
+```text title="Example event payload"
+[{"dev": "register", "circuit": "internal_40000", "value": 99}]
+```
+
+To receive only register events, send a filter command after connecting:
+
+```python title="Python — subscribe to register events only"
+import websocket, json
+
+
+def on_message(ws, message):
+    print(f"Register event: {message}")
+
+
+def on_open(ws):
+    ws.send(json.dumps({"cmd": "filter", "devices": ["register"]}))
+
+
+if __name__ == "__main__":
+    ws = websocket.WebSocketApp(
+        'ws://127.0.0.1:8080/ws',
+        on_message=on_message,
+        on_open=on_open,
+    )
+    ws.run_forever()
+```
+
+You can combine `register` with other device types in the same filter:
+
+```python
+ws.send(json.dumps({"cmd": "filter", "devices": ["register", "di", "do"]}))
+```
+
+To reset back to all events:
+
+```python
+ws.send(json.dumps({"cmd": "filter", "devices": ["default"]}))
+```

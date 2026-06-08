@@ -25,9 +25,19 @@ dependencies = [
     'tornado == 6.3.3',
     'jsonschema == 2.6.0',
     'importlib_metadata == 7.1.0',
-    'asyncowfs@git+https://github.com/UniPiTechnology/asyncowfs'
+    'asyncowfs@git+https://github.com/UniPiTechnology/asyncowfs',
+    'aiomqtt == 2.0.1'
 #    'asyncowfs@file:///home/unipi/packages/evok-internal/asyncowfs'
 ]
+
+[project.optional-dependencies]
+test = [
+    "pytest >= 7.4",
+    "pytest-asyncio >= 0.23",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
 
 [tool.setuptools]
 packages = ["evok"]
