@@ -100,8 +100,16 @@ mosquitto_sub -h localhost -u evok -P secret \
   -t 'evok/event/+/1_01' -v
 ```
 
-Common device type names for topic filtering: `di`, `do`, `ro`, `ai`, `ao`,
-`sensor`, `register`. See the [circuit reference](../circuit.md) for the full list.
+| Topic subscription | Events received |
+|---|---|
+| `evok/event/#` | All device types |
+| `evok/event/di/#` | Digital inputs only |
+| `evok/event/do/#` + `evok/event/ro/#` | Digital outputs and relays |
+| `evok/event/ai/#` | Analog inputs only |
+| `evok/event/ao/#` | Analog outputs only |
+| `evok/event/register/#` | Custom Modbus registers |
+| `evok/event/data_point/#` | Sensor data points (IAQ, xG18, …) |
+| `evok/event/+/1_01` | Circuit `1_01` across all device types |
 
 ## Configuration
 
