@@ -29,7 +29,6 @@ Complete API documentation (REST and JSON API) including syntax of all other API
     - Digital input entities are excluded from the `input` endpoint and have a separate endpoint `di`. Alternate access via `input` is still available.
     - Modified methods of setting analog input `ai` and analog output `ao` modes - mode and range are unified into one parameter. For more information see Analog input and Analog output modes in [API documentation](https://unipitechnology.stoplight.io/docs/evok).
     - Renamed `unit_register` entity to `data_point`.
-- MQTT API publishes change events for `register` (custom Modbus holding registers) and `data_point` (scaled sensor values) device types, enabling real-time monitoring over MQTT without polling.
 - Updating Evok from v2 to v3 is unsupported as well as migration from Debian 10 is unsupported - it's recommended to start from a fresh operating system.
 - The configuration of Evok has been completely rewritten to yaml based on tree structure(old .conf structure is no longer supported). See more information in the [Evok configuration](https://evok.readthedocs.io/en/latest/configs/evok_configuration/).
 - Dropped support of rarely used functions/entities (Eeprom,i2cbus,adchip,mcp,gpiobus,pca9685,unipi2,uart,wifi,light_channel,light_device,ext_config)
@@ -40,6 +39,16 @@ Complete API documentation (REST and JSON API) including syntax of all other API
 - Aliases definition file structure has been changed. Evok automatically updates the aliases definition file if a version from Evok v2 is found.
 - Modbus RTU durability has been improved. Loss of communication with one device will not affect the functionality of the entire bus.
 - Added support to communicate with more Modbus TCP servers.
+
+## Changes from upstream ([UniPiTechnology/evok](https://github.com/UniPiTechnology/evok))
+
+| Area | Change |
+|---|---|
+| MQTT API | Full bidirectional MQTT: device state changes published as events, external commands accepted via subscribed topic, `ALL` query/response for bulk device state. See [docs/apis/mqtt.md](docs/apis/mqtt.md). |
+| MQTT events — `register` | Custom Modbus holding registers now emit MQTT events when their value changes (previously silent). |
+| Handler refactoring | `handler_websocket.py`, `handler_webhook.py`, and `handler_rpc.py` extracted from `evok.py`; associated bug fixes in WebSocket closure capture and MQTT credential handling. |
+| Test suite | pytest infrastructure and 5 test modules covering MQTT client, MQTT handler, WebSocket handler, and devices; live E2E test script in `examples/test_mqtt.py`. |
+| Dependencies | Added `aiomqtt>=2.0` for MQTT support. |
 
 ## Developer Note
 
