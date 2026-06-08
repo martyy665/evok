@@ -451,6 +451,7 @@ class Board(object):
                 _reg = Register("%s_%d" % (self.circuit, board_val_reg + counter), self, counter,
                                 board_val_reg + counter, major_group=self.major_group, legacy_mode=self.legacy_mode)
             Devices.register_device(REGISTER, _reg)
+            self.__register_eventable_device(_reg)
             counter+=1
 
     def parse_feature_data_point(self, max_count, m_feature):
@@ -1186,6 +1187,7 @@ class Register:
         self.legacy_mode = legacy_mode
         self.valreg = reg
         self.reg_type = reg_type
+        self._last_value = None
 
     def regvalue(self):
         try:
@@ -1195,6 +1197,13 @@ class Register:
                 return self.arm.modbus_slave.modbus_cache_map.get_register(1, self.valreg, is_input=False)[0]
         except ENoCacheRegister:
             return None
+
+    async def check_new_data(self):
+        current = self.regvalue()
+        if current != self._last_value:
+            self._last_value = current
+            return True
+        return False
 
     def full(self):
         ret = {'dev': 'register',
