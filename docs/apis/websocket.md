@@ -117,3 +117,46 @@ WebSocket connection closed
 
 !!! tip
     You can learn more about the circuit parameter [here](../circuit.md)
+
+## Receiving register change events
+
+Custom Modbus holding registers (device type `register`) emit WebSocket events whenever their value changes, exactly like digital or analog I/O.
+
+```text title="Example event payload"
+[{"dev": "register", "circuit": "internal_40000", "value": 1234}]
+```
+
+To listen only for register events, send a filter command after connecting:
+
+```python title="Python — filter to register events only"
+import websocket, json
+
+
+def on_message(ws, message):
+    print(f"Register event: {message}")
+
+
+def on_open(ws):
+    ws.send(json.dumps({"cmd": "filter", "devices": ["register"]}))
+
+
+if __name__ == "__main__":
+    ws = websocket.WebSocketApp(
+        'ws://127.0.0.1:8080/ws',
+        on_message=on_message,
+        on_open=on_open,
+    )
+    ws.run_forever()
+```
+
+You can combine `register` with other device types in the same filter:
+
+```python
+ws.send(json.dumps({"cmd": "filter", "devices": ["register", "di", "do"]}))
+```
+
+To reset back to all events:
+
+```python
+ws.send(json.dumps({"cmd": "filter", "devices": ["default"]}))
+```

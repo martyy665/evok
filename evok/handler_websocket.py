@@ -57,25 +57,17 @@ class WebsocketHandler(websocket.WebSocketHandler):
             # get FULL state of each IO
             if cmd == "all":
                 result = []
-                devices = [DI, RO, AI, AO, SENSOR]
-                if websocket_config.get("all_filtered", False):
-                    if (len(self.filter) == 1 and self.filter[0] == "default"):
-                        for dev in devices:
-                            result += map(lambda dev: dev.full(), Devices.by_int(dev))
-                    else:
-                        for dev in range(0, 25):
-                            added_results = map(lambda dev: dev.full() if dev.full() is not None else '',
-                                                Devices.by_int(dev))
-                            for added_result in added_results:
-                                if added_result != '' and added_result['dev'] in self.filter:
-                                    result.append(added_result)
-                else:
-                    for dev in range(0, 25):
-                        added_results = map(lambda dev: dev.full() if dev.full() is not None else '',
-                                            Devices.by_int(dev))
-                        for added_result in added_results:
-                            if added_result != '':
-                                result.append(added_result)
+                for dev in range(0, 25):
+                    added_results = map(lambda dev: dev.full() if dev.full() is not None else '',
+                                        Devices.by_int(dev))
+                    for added_result in added_results:
+                        if added_result == '':
+                            continue
+                        if websocket_config.get("all_filtered", False) and \
+                                not (len(self.filter) == 1 and self.filter[0] == "default") and \
+                                added_result['dev'] not in self.filter:
+                            continue
+                        result.append(added_result)
                 await self.write_message(json.dumps(result))
             # set device state
             elif cmd == "filter":
