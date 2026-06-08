@@ -103,6 +103,26 @@ def test_on_event_register_mixed_changeset():
     assert sent[0]['dev'] == 'di'
 
 
+# ── bidirectional write (cmd "set") tests ────────────────────────────────────
+
+async def test_cmd_set_register_calls_set_method():
+    """cmd=set must call Register.set(value) and write to Modbus."""
+    from unittest.mock import AsyncMock
+    handler = _make_ws_handler()
+
+    reg = MagicMock()
+    reg.set = AsyncMock(return_value={"dev": "register", "circuit": "internal_40000", "value": 99})
+
+    msg = json.dumps({"cmd": "set", "dev": "register", "circuit": "internal_40000", "value": 99})
+    with patch('evok.handler_websocket.Devices') as mock_devs:
+        mock_devs.by_name.return_value = reg
+        await handler.on_message(msg)
+
+    mock_devs.by_name.assert_called_once_with("register", "internal_40000")
+    reg.set.assert_called_once_with(99)
+
+
+
 # ── cmd "all" test ────────────────────────────────────────────────────────────
 
 async def test_cmd_all_all_filtered_includes_register():

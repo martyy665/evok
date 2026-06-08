@@ -114,3 +114,36 @@ async def test_register_eventable_via_board_parse(monkeypatch):
     for dev in slave.eventable_devices:
         assert isinstance(dev, Register)
         assert hasattr(dev, 'check_new_data')
+
+
+# ── Register bidirectional (set → full) round-trip ───────────────────────────
+
+async def test_register_set_writes_modbus_and_full_reflects_new_value():
+    """Write via Register.set() → Modbus write → full() reads updated cache.
+
+    This is the same data path used by both WebSocket (cmd=set) and REST
+    (POST /json/register/<circuit>):
+      1. WS client sends {"cmd":"set","dev":"register","circuit":"...","value":99}
+         or REST client POSTs {"value":99} to /json/register/<circuit>.
+      2. Evok calls Register.set(99) → client.write_register() → Modbus write.
+      3. Next scan updates the cache; full() reads from cache → value=99.
+    """
+    from unittest.mock import AsyncMock
+    from evok.modbus_slave import Register
+
+    arm = MagicMock()
+    arm.modbus_address = 1
+    cache = [0]
+    arm.modbus_slave.modbus_cache_map.get_register.side_effect = lambda *a, **kw: [cache[0]]
+
+    async def fake_write(reg_addr, val, slave):
+        cache[0] = val
+    arm.modbus_slave.client.write_register = AsyncMock(side_effect=fake_write)
+
+    reg = Register("internal_40000", arm, 0, 40000)
+    assert reg.full()['value'] == 0
+
+    await reg.set(99)
+
+    assert reg.full()['value'] == 99
+    arm.modbus_slave.client.write_register.assert_awaited_once_with(40000, 99, slave=1)
