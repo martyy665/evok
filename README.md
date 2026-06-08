@@ -9,8 +9,9 @@ It provides multiple ways to easily access the I/Os of the devices, including:
 - Bulk request JSON API
 - WebSocket API
 - JSON-RPC API
+- MQTT API
 
-Besides that, Evok also supports sending notifications via webhook.
+Besides that, Evok also supports outbound push notifications via webhook.
 
 [evok-web] is a simple demo web application using Evok demonstrating its usage and allowing easy control of the devices configured in Evok.
 
@@ -28,6 +29,7 @@ Complete API documentation (REST and JSON API) including syntax of all other API
     - Digital input entities are excluded from the `input` endpoint and have a separate endpoint `di`. Alternate access via `input` is still available.
     - Modified methods of setting analog input `ai` and analog output `ao` modes - mode and range are unified into one parameter. For more information see Analog input and Analog output modes in [API documentation](https://unipitechnology.stoplight.io/docs/evok).
     - Renamed `unit_register` entity to `data_point`.
+- MQTT API publishes change events for `register` (custom Modbus holding registers) and `data_point` (scaled sensor values) device types, enabling real-time monitoring over MQTT without polling.
 - Updating Evok from v2 to v3 is unsupported as well as migration from Debian 10 is unsupported - it's recommended to start from a fresh operating system.
 - The configuration of Evok has been completely rewritten to yaml based on tree structure(old .conf structure is no longer supported). See more information in the [Evok configuration](https://evok.readthedocs.io/en/latest/configs/evok_configuration/).
 - Dropped support of rarely used functions/entities (Eeprom,i2cbus,adchip,mcp,gpiobus,pca9685,unipi2,uart,wifi,light_channel,light_device,ext_config)
